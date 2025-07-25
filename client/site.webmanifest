@@ -1,0 +1,16 @@
+{
+  "name": "Villa Pura Bali",
+  "short_name": "Villa Pura",
+  "description": "Luxury 4-bedroom villa rental in Pererenan, Bali",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#81C784",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

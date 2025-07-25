@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  background-color: #f8f8f8;
+  color: #333333;
+  margin: 0;
+  padding: 0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+* {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.playfair-display {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Hide WordPress-specific elements */
+.site-branding,
+.powered-by,
+.wp-block-site-title,
+.wp-block-site-footer,
+.wp-site-footer,
+.site-footer,
+.site-title,
+header:not(.wp-block-template-part),
+#header,
+#footer,
+#headerimg {
+  display: none !important;
+}
+
+/* Ensure React footer is visible */
+footer {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative;
+  z-index: 10;
+  background-color: #333333; /* villa-charcoal */
+  color: #FFFFFF; /* villa-white */
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  margin-top: 3rem;
+}
+
+/* Style T&C link */
+footer a {
+  color: #4CAF50; /* villa-green */
+  text-decoration: underline;
+}
+
+footer a:hover {
+  color: #388E3C; /* darker villa-green */
+}
+
+/* Center footer content */
+footer .container {
+  text-align: center;
+}
+
+footer p, footer a {
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.5;
+}
+
+/* Hamburger Menu Styles */
+.hamburger span {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Ensure specific links are visible */
+.link-visible {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}

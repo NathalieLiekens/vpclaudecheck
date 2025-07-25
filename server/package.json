@@ -1,0 +1,27 @@
+{
+  "name": "villa-pura-server",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.1",
+    "iconv-lite": "^0.6.3",
+    "ics": "^3.8.1",
+    "luxon": "^3.7.1",
+    "mongoose": "^8.16.0",
+    "node-cron": "^3.0.3",
+    "node-ical": "^0.20.1",
+    "resend": "^1.1.0",
+    "stripe": "^18.2.1",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
