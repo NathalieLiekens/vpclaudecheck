@@ -214,23 +214,35 @@ useEffect(() => {
   calculatePrice();
 }, [checkInDate, checkOutDate, blockedDates, currency, discountApplied, discountCode, withErrorHandling, clearError]);
 
-  // Date change handlers
+  // ✅ FIXED: Date change handlers with timezone fix
   const handleCheckInChange = (date) => {
-    const witaDate = date ? new Date(new Date(date).toLocaleString('en-US', { timeZone: 'Asia/Makassar' })) : null;
-    if (witaDate) witaDate.setHours(0, 0, 0, 0);
-    setCheckInDate(witaDate);
+    // Create a new date that represents the same calendar day regardless of timezone
+    const normalizedDate = date ? new Date(
+      date.getFullYear(),
+      date.getMonth(), 
+      date.getDate(),
+      12, 0, 0, 0  // Set to noon to avoid timezone edge cases
+    ) : null;
     
-    if (witaDate && (!checkOutDate || checkOutDate <= witaDate)) {
-      const minCheckOut = new Date(witaDate);
-      const isPeakSeason = witaDate && (
-        (witaDate >= new Date(2025, 0, 1) && witaDate < new Date(2025, 0, 6)) || 
-        (witaDate >= new Date(2025, 11, 20))
+    console.log('🔍 Check-in date:', {
+      original: date?.toDateString(),
+      normalized: normalizedDate?.toDateString(),
+      willSendToAPI: normalizedDate?.toISOString()
+    });
+    
+    setCheckInDate(normalizedDate);
+    
+    if (normalizedDate && (!checkOutDate || checkOutDate <= normalizedDate)) {
+      const minCheckOut = new Date(normalizedDate);
+      const isPeakSeason = normalizedDate && (
+        (normalizedDate >= new Date(2025, 0, 1) && normalizedDate < new Date(2025, 0, 6)) || 
+        (normalizedDate >= new Date(2025, 11, 20))
       );
       minCheckOut.setDate(minCheckOut.getDate() + (isPeakSeason ? 5 : 2));
       setCheckOutDate(minCheckOut);
     }
     
-    if (witaDate && (new Date(witaDate) - new Date()) / (1000 * 60 * 60 * 24) < 45) {
+    if (normalizedDate && (new Date(normalizedDate) - new Date()) / (1000 * 60 * 60 * 24) < 45) {
       setPaymentType('full');
     }
     
@@ -243,16 +255,28 @@ useEffect(() => {
   };
 
   const handleCheckOutChange = (date) => {
-    const witaDate = date ? new Date(new Date(date).toLocaleString('en-US', { timeZone: 'Asia/Makassar' })) : null;
-    if (witaDate) witaDate.setHours(0, 0, 0, 0);
-    setCheckOutDate(witaDate);
+    // Create a new date that represents the same calendar day regardless of timezone
+    const normalizedDate = date ? new Date(
+      date.getFullYear(),
+      date.getMonth(), 
+      date.getDate(),
+      12, 0, 0, 0  // Set to noon to avoid timezone edge cases
+    ) : null;
     
-    if (witaDate && witaDate > new Date(2027, 1, 1)) {
+    console.log('🔍 Check-out date:', {
+      original: date?.toDateString(),
+      normalized: normalizedDate?.toDateString(),
+      willSendToAPI: normalizedDate?.toISOString()
+    });
+    
+    if (normalizedDate && normalizedDate > new Date(2027, 1, 1)) {
       setError('Bookings are only available until January 31, 2027.');
       setCheckOutDate(null);
       setShowPaymentFields(false);
       return;
     }
+    
+    setCheckOutDate(normalizedDate);
     
     // Reset states
     setDiscountApplied(false);
@@ -372,7 +396,6 @@ useEffect(() => {
           </div>
         )}
 
-        {/* Rest of your existing form JSX... */}
         <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
           {/* Date Selection */}
           <DateSelectionSection

@@ -42,22 +42,41 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
         headers: { 'Content-Type': 'application/json' },
       });
       
-      const { clientSecret, bookingId, paymentIntentId, error: responseError } = response.data;
-
-      if (responseError) {
-        throw new Error(responseError);
+      // ✅ FIX: Properly extract all response data with error handling
+      const responseData = response.data;
+      console.log('🔍 CHECKOUT DEBUG - Full response data:', responseData);
+      
+      if (responseData.error) {
+        throw new Error(responseData.error);
       }
 
+      const { clientSecret, bookingId } = responseData;
+      
+      // ✅ FIX: Ensure we have bookingId
+      if (!bookingId) {
+        throw new Error('Booking ID missing from server response');
+      }
+
+      // Handle TESTFREE bookings (no payment required)
       if (bookingDetails.discountCode === 'TESTFREE') {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/bookings/confirm-payment`, {
-          paymentIntentId: paymentIntentId || 'TESTFREE_NO_PAYMENT',
-          bookingId,
-        });
+        // ✅ FIX: For free bookings, still call confirm-payment but with special handling
+        try {
+          await axios.post(`${import.meta.env.VITE_API_URL}/api/bookings/confirm-payment`, {
+            paymentIntentId: 'TESTFREE_NO_PAYMENT',  // This matches backend expectation
+            bookingId,
+          });
+        } catch (confirmError) {
+          console.error('Free booking confirmation error:', confirmError);
+          // For free bookings, this might not be critical if webhook already processed
+        }
         onSuccess(bookingId);
         return;
       }
 
-      if (clientSecret) {
+      // Handle paid bookings
+      if (clientSecret && bookingDetails.total > 0) {
+        console.log('🔍 CHECKOUT DEBUG - Processing payment with clientSecret');
+        
         const result = await stripe.confirmCardPayment(clientSecret, {
           payment_method: {
             card: elements.getElement(CardElement),
@@ -72,12 +91,33 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
           throw new Error(result.error.message);
         }
 
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/bookings/confirm-payment`, {
+        console.log('🔍 CHECKOUT DEBUG - Payment successful, result:', result);
+        
+        // ✅ FIX: Get paymentIntentId from the Stripe result, not from initial response
+        const paymentIntentId = result.paymentIntent.id;
+        
+        console.log('🔍 CHECKOUT DEBUG - Confirming payment with:', {
           paymentIntentId,
-          bookingId,
+          bookingId
         });
+
+        // Confirm payment with backend (fallback if webhook doesn't work)
+        try {
+          await axios.post(`${import.meta.env.VITE_API_URL}/api/bookings/confirm-payment`, {
+            paymentIntentId,  // ✅ FIX: Use correct paymentIntentId from Stripe result
+            bookingId,
+          });
+          console.log('✅ CHECKOUT DEBUG - Payment confirmation successful');
+        } catch (confirmError) {
+          console.error('❌ CHECKOUT DEBUG - Payment confirmation failed:', confirmError);
+          // Log but don't throw - webhook might have already processed this
+          console.log('Payment succeeded but confirmation failed - webhook should handle this');
+        }
+        
         onSuccess(bookingId);
       } else {
+        // No payment required but booking created
+        console.log('🔍 CHECKOUT DEBUG - No payment required, proceeding to success');
         onSuccess(bookingId);
       }
     } catch (err) {

@@ -1,3 +1,4 @@
+// Fixed PriceDisplay.jsx - Match backend deposit calculation
 import React from 'react';
 
 const PriceDisplay = ({
@@ -15,6 +16,11 @@ const PriceDisplay = ({
   const nights = checkInDate && checkOutDate 
     ? (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
     : 0;
+
+  // ✅ FIX: Match backend deposit calculation exactly
+  const depositAmount = paymentType === 'deposit' && discountCode !== 'TESTFREE' 
+    ? Math.round(discountedTotal * 0.3 * 100) / 100  // Same precision as backend
+    : discountedTotal;
 
   return (
     <div className="bg-gray-50 p-4 rounded-lg space-y-2">
@@ -47,7 +53,7 @@ const PriceDisplay = ({
       
       {paymentType === 'deposit' && discountCode !== 'TESTFREE' && (
         <p className="text-sm text-blue-600">
-          30% deposit: {currency} {Math.round(discountedTotal * 0.3).toLocaleString('id-ID')}
+          30% deposit: {currency} {depositAmount.toLocaleString('id-ID')}
           <br />
           <span className="text-xs text-gray-500">
             Remaining 70% due 1 month before check-in
