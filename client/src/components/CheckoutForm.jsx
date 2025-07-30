@@ -139,6 +139,22 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
     }
   };
 
+  // ✅ FIX: Helper function to format price properly
+  const formatPrice = (amount, currency) => {
+    const numAmount = parseFloat(amount);
+    
+    // For currencies like AUD, USD, EUR - show decimals
+    if (['AUD', 'USD', 'EUR'].includes(currency)) {
+      return numAmount.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+    
+    // For IDR - show as whole number
+    return Math.round(numAmount).toLocaleString('id-ID');
+  };
+
   return (
     <div className="space-y-4">
       {/* Card Element - only show if payment is required */}
@@ -204,7 +220,7 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
                 : 'Total:'}
             </span>
             <span className="text-villa-green">
-              {bookingDetails.currency} {parseInt(bookingDetails.total).toLocaleString('id-ID')}
+              {bookingDetails.currency} {formatPrice(bookingDetails.total, bookingDetails.currency)}
             </span>
           </div>
           {bookingDetails.discountCode && (

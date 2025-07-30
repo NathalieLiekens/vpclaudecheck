@@ -1,4 +1,4 @@
-// src/components/BookingForm.jsx (Complete fixed version)
+// src/components/BookingForm.jsx (Complete fixed version with timezone fix)
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Elements } from '@stripe/react-stripe-js';
@@ -42,7 +42,7 @@ const BookingForm = () => {
   // Booking options state
   const [discountCode, setDiscountCode] = useState('');
   const [paymentType, setPaymentType] = useState('full');
-  const [currency, setCurrency] = useState('IDR'); // ✅ Now properly declared before useEffect
+  const [currency, setCurrency] = useState('IDR');
   
   // UI state
   const [error, setError] = useState('');
@@ -92,127 +92,126 @@ const BookingForm = () => {
     return errors;
   };
 
-  // Updated price calculation with error handling
-// client/src/components/BookingForm.jsx - FIXED date handling in useEffect
-useEffect(() => {
-  if (!checkInDate || !checkOutDate) {
-    setTotal(0);
-    setDiscountedTotal(0);
-    setDiscountApplied(false);
-    setError('');
-    clearError();
-    setShowPaymentFields(false);
-    return;
-  }
-
-  const calculatePrice = async () => {
-    try {
-      setIsCalculatingPrice(true);
+  // ✅ FIXED: Price calculation with proper date handling
+  useEffect(() => {
+    if (!checkInDate || !checkOutDate) {
+      setTotal(0);
+      setDiscountedTotal(0);
+      setDiscountApplied(false);
       setError('');
       clearError();
+      setShowPaymentFields(false);
+      return;
+    }
 
-      // ✅ FIX: Ensure dates are properly formatted as ISO strings
-      const checkInISO = checkInDate instanceof Date 
-        ? checkInDate.toISOString() 
-        : new Date(checkInDate).toISOString();
-      
-      const checkOutISO = checkOutDate instanceof Date 
-        ? checkOutDate.toISOString() 
-        : new Date(checkOutDate).toISOString();
+    const calculatePrice = async () => {
+      try {
+        setIsCalculatingPrice(true);
+        setError('');
+        clearError();
 
-      console.log('🔍 FRONTEND DEBUG - Date formatting:', {
-        checkInDate: checkInDate,
-        checkOutDate: checkOutDate,
-        checkInISO: checkInISO,
-        checkOutISO: checkOutISO
-      });
+        // ✅ FIX: Ensure dates are properly formatted as ISO strings
+        const checkInISO = checkInDate instanceof Date 
+          ? checkInDate.toISOString() 
+          : new Date(checkInDate).toISOString();
+        
+        const checkOutISO = checkOutDate instanceof Date 
+          ? checkOutDate.toISOString() 
+          : new Date(checkOutDate).toISOString();
 
-      // Basic date validation (existing code)
-      const normalizedStart = new Date(checkInISO);
-      const normalizedEnd = new Date(checkOutISO);
-      normalizedStart.setHours(0, 0, 0, 0);
-      normalizedEnd.setHours(0, 0, 0, 0);
+        console.log('🔍 FRONTEND DEBUG - Date formatting:', {
+          checkInDate: checkInDate,
+          checkOutDate: checkOutDate,
+          checkInISO: checkInISO,
+          checkOutISO: checkOutISO
+        });
 
-      // Check for blocked dates (existing code)
-      for (let d = new Date(normalizedStart); d < normalizedEnd; d.setDate(d.getDate() + 1)) {
-        const isBlocked = blockedDates.some(
-          (blocked) =>
-            blocked.getFullYear() === d.getFullYear() &&
-            blocked.getMonth() === d.getMonth() &&
-            blocked.getDate() === d.getDate()
-        );
-        if (isBlocked) {
-          setError('Selected dates include unavailable dates.');
+        // Basic date validation
+        const normalizedStart = new Date(checkInISO);
+        const normalizedEnd = new Date(checkOutISO);
+        normalizedStart.setHours(0, 0, 0, 0);
+        normalizedEnd.setHours(0, 0, 0, 0);
+
+        // Check for blocked dates
+        for (let d = new Date(normalizedStart); d < normalizedEnd; d.setDate(d.getDate() + 1)) {
+          const isBlocked = blockedDates.some(
+            (blocked) =>
+              blocked.getFullYear() === d.getFullYear() &&
+              blocked.getMonth() === d.getMonth() &&
+              blocked.getDate() === d.getDate()
+          );
+          if (isBlocked) {
+            setError('Selected dates include unavailable dates.');
+            setTotal(0);
+            setDiscountedTotal(0);
+            setShowPaymentFields(false);
+            return;
+          }
+        }
+
+        // Check date range limit
+        if (normalizedEnd > new Date(2027, 1, 1)) {
+          setError('Bookings are only available until January 31, 2027.');
           setTotal(0);
           setDiscountedTotal(0);
           setShowPaymentFields(false);
           return;
         }
-      }
 
-      // Check date range limit (existing code)
-      if (normalizedEnd > new Date(2027, 1, 1)) {
-        setError('Bookings are only available until January 31, 2027.');
+        // ✅ FIX: Improved API call with proper data formatting
+        const result = await withErrorHandling(async () => {
+          const priceData = {
+            startDate: checkInISO,
+            endDate: checkOutISO,
+            currency: currency || 'IDR',
+            discountCode: discountApplied ? discountCode : ''
+          };
+
+          console.log('🔍 FRONTEND DEBUG - Sending price calculation request:', priceData);
+
+          const originalResponse = await api.calculatePrice(priceData);
+
+          let discountResponse = originalResponse;
+          if (discountApplied && discountCode) {
+            const discountPriceData = {
+              ...priceData,
+              discountCode: discountCode
+            };
+            discountResponse = await api.calculatePrice(discountPriceData);
+          }
+
+          return { originalResponse, discountResponse };
+        });
+
+        setTotal(result.originalResponse.data.total);
+        setDiscountedTotal(result.discountResponse.data.total);
+        setError('');
+
+      } catch (err) {
+        console.error('[ERROR] Calculating price:', err.message);
+        
+        // ✅ FIX: More specific error messages
+        let errorMessage = 'Failed to calculate price. Please try again.';
+        
+        if (err.message.includes('Invalid')) {
+          errorMessage = 'Please check your selected dates and try again.';
+        } else if (err.message.includes('Network')) {
+          errorMessage = 'Connection error. Please check your internet and try again.';
+        } else if (err.message.includes('Server')) {
+          errorMessage = 'Server error. Please try again later or contact support.';
+        }
+        
+        setError(errorMessage);
         setTotal(0);
         setDiscountedTotal(0);
         setShowPaymentFields(false);
-        return;
+      } finally {
+        setIsCalculatingPrice(false);
       }
+    };
 
-      // ✅ FIX: Improved API call with proper data formatting
-      const result = await withErrorHandling(async () => {
-        const priceData = {
-          startDate: checkInISO,
-          endDate: checkOutISO,
-          currency: currency || 'IDR',
-          discountCode: discountApplied ? discountCode : ''
-        };
-
-        console.log('🔍 FRONTEND DEBUG - Sending price calculation request:', priceData);
-
-        const originalResponse = await api.calculatePrice(priceData);
-
-        let discountResponse = originalResponse;
-        if (discountApplied && discountCode) {
-          const discountPriceData = {
-            ...priceData,
-            discountCode: discountCode
-          };
-          discountResponse = await api.calculatePrice(discountPriceData);
-        }
-
-        return { originalResponse, discountResponse };
-      });
-
-      setTotal(result.originalResponse.data.total);
-      setDiscountedTotal(result.discountResponse.data.total);
-      setError('');
-
-    } catch (err) {
-      console.error('[ERROR] Calculating price:', err.message);
-      
-      // ✅ FIX: More specific error messages
-      let errorMessage = 'Failed to calculate price. Please try again.';
-      
-      if (err.message.includes('Invalid')) {
-        errorMessage = 'Please check your selected dates and try again.';
-      } else if (err.message.includes('Network')) {
-        errorMessage = 'Connection error. Please check your internet and try again.';
-      } else if (err.message.includes('Server')) {
-        errorMessage = 'Server error. Please try again later or contact support.';
-      }
-      
-      setError(errorMessage);
-      setTotal(0);
-      setDiscountedTotal(0);
-      setShowPaymentFields(false);
-    } finally {
-      setIsCalculatingPrice(false);
-    }
-  };
-
-  calculatePrice();
-}, [checkInDate, checkOutDate, blockedDates, currency, discountApplied, discountCode, withErrorHandling, clearError]);
+    calculatePrice();
+  }, [checkInDate, checkOutDate, blockedDates, currency, discountApplied, discountCode, withErrorHandling, clearError]);
 
   // ✅ FIXED: Date change handlers with timezone fix
   const handleCheckInChange = (date) => {
@@ -598,7 +597,9 @@ useEffect(() => {
                       endDate: checkOutDate?.toISOString(),
                       adults,
                       kids,
-                      total: paymentType === 'deposit' && discountCode !== 'TESTFREE' ? discountedTotal * 0.3 : discountedTotal,
+                      total: paymentType === 'deposit' && discountCode !== 'TESTFREE' 
+                        ? Math.round(discountedTotal * 0.3 * 100) / 100  // ✅ FIX: Match backend exactly
+                        : discountedTotal,
                       arrivalTime,
                       specialRequests,
                       discountCode: discountApplied ? discountCode : '',
