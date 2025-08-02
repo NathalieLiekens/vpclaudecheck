@@ -13,6 +13,40 @@ import Reviews from "./pages/Reviews";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import SuccessPage from "./pages/SuccessPage";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { initGA, trackPageView, villaTracking } from './utils/analytics';
+
+// Page tracking component
+function PageTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Initialize GA on first load
+    initGA();
+  }, []);
+
+  useEffect(() => {
+    // Track page view on route change
+    trackPageView(location.pathname + location.search);
+    
+    // Track specific page events
+    switch (location.pathname) {
+      case '/gallery':
+        villaTracking.galleryViewed();
+        break;
+      case '/pricing':
+        villaTracking.pricingViewed();
+        break;
+      case '/reviews':
+        villaTracking.reviewsViewed();
+        break;
+      case '/local-guide':
+        villaTracking.localGuideViewed();
+        break;
+    }
+  }, [location]);
+
+  return null; // This component doesn't render anything
+}
 
 function App() {
   const [isOpen, setIsOpen] = useState(false);

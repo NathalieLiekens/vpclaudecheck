@@ -1,4 +1,4 @@
-// src/components/BookingForm.jsx (Complete fixed version with timezone fix)
+// src/components/BookingForm.jsx (Complete fixed version with timezone fix + analytics)
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Elements } from '@stripe/react-stripe-js';
@@ -6,6 +6,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { api } from '../config/api';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 import ErrorBoundary from './ErrorBoundary';
+import { villaTracking } from '../utils/analytics';
 
 // Import other components...
 import { useBlockedDates } from '../hooks/useBlockedDates';
@@ -185,6 +186,11 @@ const BookingForm = () => {
 
         setTotal(result.originalResponse.data.total);
         setDiscountedTotal(result.discountResponse.data.total);
+        
+        // Analytics: Track price calculation
+        const nights = Math.round((normalizedEnd - normalizedStart) / (1000 * 60 * 60 * 24));
+        villaTracking.priceCalculated(result.discountResponse.data.total, currency, nights);
+        
         setError('');
 
       } catch (err) {
@@ -211,7 +217,8 @@ const BookingForm = () => {
     };
 
     calculatePrice();
-  }, [checkInDate, checkOutDate, blockedDates, currency, discountApplied, discountCode, withErrorHandling, clearError]);
+  }, [checkInDate, checkOutDate, blockedDates, currency, discountApplied, withErrorHandling, clearError]);
+  // ✅ FIX: Removed discountCode from dependencies - only run when discountApplied changes
 
   // ✅ FIXED: Date change handlers with timezone fix
   const handleCheckInChange = (date) => {
@@ -231,11 +238,20 @@ const BookingForm = () => {
     
     setCheckInDate(normalizedDate);
     
+    // Analytics: Track date selection
+    if (normalizedDate) {
+      villaTracking.dateSelected(normalizedDate, checkOutDate);
+    }
+    
     if (normalizedDate && (!checkOutDate || checkOutDate <= normalizedDate)) {
       const minCheckOut = new Date(normalizedDate);
       const isPeakSeason = normalizedDate && (
+        // 2025 Peak periods
         (normalizedDate >= new Date(2025, 0, 1) && normalizedDate < new Date(2025, 0, 6)) || 
-        (normalizedDate >= new Date(2025, 11, 20))
+        (normalizedDate >= new Date(2025, 11, 20) && normalizedDate < new Date(2026, 0, 1)) ||
+        // 2026 Peak periods  
+        (normalizedDate >= new Date(2026, 0, 1) && normalizedDate < new Date(2026, 0, 6)) ||
+        (normalizedDate >= new Date(2026, 11, 20) && normalizedDate < new Date(2027, 0, 1))
       );
       minCheckOut.setDate(minCheckOut.getDate() + (isPeakSeason ? 5 : 2));
       setCheckOutDate(minCheckOut);
@@ -267,6 +283,11 @@ const BookingForm = () => {
       normalized: normalizedDate?.toDateString(),
       willSendToAPI: normalizedDate?.toISOString()
     });
+    
+    // Analytics: Track date selection
+    if (normalizedDate && checkInDate) {
+      villaTracking.dateSelected(checkInDate, normalizedDate);
+    }
     
     if (normalizedDate && normalizedDate > new Date(2027, 1, 1)) {
       setError('Bookings are only available until January 31, 2027.');
@@ -309,6 +330,11 @@ const BookingForm = () => {
         });
       });
       
+      // Analytics: Track discount application
+      if (result.data.total !== total) {
+        villaTracking.discountApplied(discountCode.trim(), total, result.data.total);
+      }
+      
       setDiscountedTotal(result.data.total);
       setDiscountApplied(true);
       setError('');
@@ -331,6 +357,13 @@ const BookingForm = () => {
       return;
     }
 
+    // Analytics: Track payment initiation
+    const finalAmount = paymentType === 'deposit' && discountCode !== 'TESTFREE' 
+      ? Math.round(discountedTotal * 0.3 * 100) / 100 
+      : discountedTotal;
+    
+    villaTracking.paymentInitiated(finalAmount, currency, paymentType);
+
     // Only validate dates at this stage - guest details come later
     setError('');
     clearError();
@@ -339,6 +372,13 @@ const BookingForm = () => {
 
   // Booking success handler
   const handleBookingSuccess = (bookingId) => {
+    // Analytics: Track booking completion
+    const finalAmount = paymentType === 'deposit' && discountCode !== 'TESTFREE' 
+      ? Math.round(discountedTotal * 0.3 * 100) / 100 
+      : discountedTotal;
+    
+    villaTracking.bookingCompleted(bookingId, finalAmount, currency, paymentType);
+    
     navigate(`/success?bookingId=${bookingId}`);
   };
 
@@ -446,16 +486,23 @@ const BookingForm = () => {
                     const newCode = e.target.value;
                     setDiscountCode(newCode);
                     
-                    // Only reset states, don't validate on every keystroke
+                    // ✅ FIX: Only reset applied state if discount was previously applied
                     if (discountApplied) {
                       setDiscountApplied(false);
                       setDiscountedTotal(total);
                       setShowPaymentFields(false);
                     }
                     
-                    // Clear any existing discount-related errors when user starts typing
-                    if (error && error.includes('discount')) {
+                    // ✅ FIX: Clear discount-related errors when user types (not all errors)
+                    if (error && (error.includes('discount') || error.includes('Invalid'))) {
                       setError('');
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    // ✅ FIX: Allow Enter key to apply discount
+                    if (e.key === 'Enter' && discountCode.trim() && !isCalculatingPrice) {
+                      e.preventDefault();
+                      handleApplyDiscount();
                     }
                   }}
                   placeholder="Enter discount code if available"
