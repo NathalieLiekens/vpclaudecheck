@@ -1,4 +1,4 @@
-// Fixed PriceDisplay.jsx - Match backend deposit calculation
+// Fixed PriceDisplay.jsx - Remove console.log causing infinite renders
 import React from 'react';
 
 const PriceDisplay = ({
@@ -22,13 +22,8 @@ const PriceDisplay = ({
     ? Math.round(discountedTotal * 0.3 * 100) / 100  // Same precision as backend
     : discountedTotal;
 
-  console.log('🔍 PRICE DISPLAY DEBUG:', {
-    discountedTotal,
-    paymentType,
-    depositCalculation: discountedTotal * 0.3,
-    depositAmount,
-    discountCode
-  });
+  // ✅ REMOVED: console.log that was causing infinite renders
+  // Only log when there are actual changes, not on every render
 
   return (
     <div className="bg-gray-50 p-4 rounded-lg space-y-2">

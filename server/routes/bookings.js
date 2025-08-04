@@ -137,25 +137,38 @@ router.post('/', async (req, res) => {
     
     checkDateAvailability(checkInDate, checkOutDate, blockedDates);
 
-    const guestName = `${firstName} ${lastName}`;
-    const totalPrice = await calculateTotalPrice(checkInDate, checkOutDate, currency);
-    const { finalTotal, airportTransfer } = applyDiscount(totalPrice, discountCode);
+// FIXED: server/routes/bookings.js - Correct price validation
+const guestName = `${firstName} ${lastName}`;
+const totalPrice = await calculateTotalPrice(checkInDate, checkOutDate, currency);
+const { finalTotal, airportTransfer } = applyDiscount(totalPrice, discountCode);
 
-    // Validate total matches expected, except for test codes
-    if (!['TESTFIVEEUR', 'TESTFREE'].includes(discountCode) && Math.abs(finalTotal - total) > 0.01) {
-      logger.warn('Price mismatch:', { expected: total, calculated: finalTotal, discountCode });
-      throw new Error('Total price mismatch - please recalculate');
-    }
+// ✅ FIX: Calculate expected amount based on payment type
+let expectedAmount = finalTotal;
+if (paymentType === 'deposit' && finalTotal > 0 && discountCode !== 'TESTFREE') {
+  expectedAmount = Math.round(finalTotal * 0.3 * 100) / 100;
+}
 
-    let finalTotalAdjusted = finalTotal;
-    let amountPaid = finalTotal;
-    let remainingAmount = 0;
-    
-    if (paymentType === 'deposit' && finalTotal > 0) {
-      finalTotalAdjusted = Math.round(finalTotal * 0.3 * 100) / 100; // Round to 2 decimal places
-      amountPaid = finalTotalAdjusted;
-      remainingAmount = finalTotal - finalTotalAdjusted;
-    }
+// ✅ FIX: Validate against the correct expected amount
+if (!['TESTFIVEEUR', 'TESTFREE'].includes(discountCode) && Math.abs(expectedAmount - total) > 0.01) {
+  logger.warn('Price mismatch:', { 
+    expected: total, 
+    calculated: expectedAmount, 
+    fullTotal: finalTotal,
+    paymentType,
+    discountCode 
+  });
+  throw new Error('Total price mismatch - please recalculate');
+}
+
+let finalTotalAdjusted = finalTotal;
+let amountPaid = finalTotal;
+let remainingAmount = 0;
+
+if (paymentType === 'deposit' && finalTotal > 0) {
+  finalTotalAdjusted = Math.round(finalTotal * 0.3 * 100) / 100; // Round to 2 decimal places
+  amountPaid = finalTotalAdjusted;
+  remainingAmount = finalTotal - finalTotalAdjusted;
+}
 
     let paymentIntent = { paymentIntentId: null, clientSecret: null };
     

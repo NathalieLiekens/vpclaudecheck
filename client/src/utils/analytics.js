@@ -52,12 +52,20 @@ export const villaTracking = {
     trackEvent('discount_applied', 'booking_flow', discountCode, Math.round(savings));
   },
 
+  // ✅ FIX: Use precise amounts for payment tracking to match backend validation
   paymentInitiated: (total, currency, paymentType) => {
+    // For GA display purposes, we can round, but log the precise amount being sent to backend
+    const preciseTotalForGA = Math.round(total * 100) / 100; // Round to 2 decimal places
+    console.log('🔍 GA Payment Initiated - Precise amount:', preciseTotalForGA, 'Rounded for GA:', Math.round(total));
     trackEvent('begin_checkout', 'ecommerce', paymentType, Math.round(total));
   },
 
   bookingCompleted: (bookingId, total, currency, paymentType) => {
-    // E-commerce tracking
+    // For GA display purposes, we can round, but log the precise amount
+    const preciseTotalForGA = Math.round(total * 100) / 100; // Round to 2 decimal places
+    console.log('🔍 GA Booking Completed - Precise amount:', preciseTotalForGA, 'Rounded for GA:', Math.round(total));
+    
+    // E-commerce tracking (GA expects whole numbers for better reporting)
     trackEvent('purchase', 'ecommerce', bookingId, Math.round(total));
     // Custom tracking
     trackEvent('booking_completed', 'conversion', paymentType, Math.round(total));
