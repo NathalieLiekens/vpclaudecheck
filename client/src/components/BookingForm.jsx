@@ -625,21 +625,6 @@ const BookingForm = () => {
                 validateName={validateName}
               />
 
-              {/* ✅ TEMPORARY DEBUG - Remove after fixing */}
-              {paymentType === 'deposit' && discountCode !== 'TESTFREE' && (
-                <div style={{padding: '10px', backgroundColor: '#fff3cd', border: '1px solid #ffeaa7', borderRadius: '5px', marginBottom: '10px'}}>
-                  <h4>🔍 DEBUG: Deposit Calculation</h4>
-                  <p><strong>Full Total:</strong> {discountedTotal} {currency}</p>
-                  <p><strong>30% Calculation:</strong> {discountedTotal} × 0.3 = {discountedTotal * 0.3}</p>
-                  <p><strong>Rounded Result:</strong> {Math.round(discountedTotal * 0.3 * 100) / 100} {currency}</p>
-                  <p><strong>What frontend will send:</strong> {
-                    paymentType === 'deposit' && discountCode !== 'TESTFREE' 
-                      ? Math.round(discountedTotal * 0.3 * 100) / 100
-                      : discountedTotal
-                  } {currency}</p>
-                </div>
-              )}
-
               {/* Payment Processing */}
               {total >= 0 && (
                 <Elements stripe={stripePromise} options={{
