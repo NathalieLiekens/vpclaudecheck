@@ -20,20 +20,20 @@ const TermsAndConditions = () => {
         </ul>
 
         <h2 className="text-xl sm:text-2xl font-bold mt-8 mb-4">2. Payment Terms</h2>
-        <ul className="list-disc ml-6 space-y-2">
-          <li>Payments are processed securely via Stripe, accepting major credit/debit cards (Visa, Mastercard, Amex) and digital wallets (e.g., Apple Pay, Google Pay), subject to availability in your region.</li>
-          <li>Full payment is required at booking for stays under 7 nights. For longer stays, a 50% deposit is due at booking, with the balance due 30 days before check-in.</li>
-          <li>All rates are in USD and include applicable taxes and fees, as displayed during checkout.</li>
-          <li>Payment disputes or chargebacks must be raised within 60 days of the transaction, per Stripe’s policies.</li>
-        </ul>
+<ul className="list-disc ml-6 space-y-2">
+  <li>Payments are processed securely via Stripe, accepting major credit/debit cards (Visa, Mastercard, Amex) and digital wallets (e.g., Apple Pay, Google Pay), subject to availability in your region.</li>
+  <li>Bookings made 45+ days in advance can choose a 30% deposit option, with the remaining 70% due 30 days before check-in. Bookings within 45 days require full payment at time of booking.</li>
+  <li>All rates are displayed in your selected currency and include applicable taxes and fees, as shown during checkout.</li>
+  <li>Payment disputes or chargebacks must be raised within 60 days of the transaction, per Stripe's policies.</li>
+</ul>
 
-        <h2 className="text-xl sm:text-2xl font-bold mt-8 mb-4">3. Cancellation and Refund Policy</h2>
-        <ul className="list-disc ml-6 space-y-2">
-          <li><strong>Standard Cancellations</strong>: Cancellations 30+ days before check-in receive a 50% refund of the paid amount. Cancellations within 30 days are non-refundable.</li>
-          <li><strong>Force Majeure</strong>: If travel is prohibited due to government restrictions or natural disasters, guests may reschedule or receive a credit for a future stay, subject to availability.</li>
-          <li>Refunds are processed via Stripe to the original payment method within 5–10 business days.</li>
-          <li>No refunds for early departures, no-shows, or changes in guest numbers.</li>
-        </ul>
+<h2 className="text-xl sm:text-2xl font-bold mt-8 mb-4">3. Cancellation and Refund Policy</h2>
+<ul className="list-disc ml-6 space-y-2">
+  <li><strong>Standard Cancellations</strong>: Cancellations more than 30 days before check-in receive a 70% refund of the paid amount. Cancellations within 30 days but more than 10 days before check-in receive a 70% refund. Cancellations within 10 days of check-in are non-refundable.</li>
+  <li><strong>Force Majeure</strong>: If travel is prohibited due to government restrictions or natural disasters, guests may reschedule or receive a credit for a future stay, subject to availability.</li>
+  <li>All refunds are processed via Stripe to the original payment method within 5–10 business days, minus a 4% administration fee to cover payment processing costs.</li>
+  <li>No refunds for early departures, no-shows, or changes in guest numbers.</li>
+</ul>
 
         <h2 className="text-xl sm:text-2xl font-bold mt-8 mb-4">4. House Rules</h2>
         <ul className="list-disc ml-6 space-y-2">

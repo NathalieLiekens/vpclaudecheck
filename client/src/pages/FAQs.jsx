@@ -19,7 +19,7 @@ const FAQs = () => {
     },
     {
       question: 'How do I cancel a booking?',
-      answer: 'Cancellations more than 30 days before check-in receive a full refund minus a 3% admin fee. Within 30 days, you’ll get a 70% refund, but bookings within 10 days are non-refundable. For more details, check our <Link to="/terms-and-conditions">Terms and Conditions</Link>.',
+      answer: 'Cancellations more than 30 days before check-in receive a full refund minus a 4% admin fee. Within 30 days, you’ll get a 70% refund, but bookings within 10 days are non-refundable. For more details, check our <Link to="/terms-and-conditions">Terms and Conditions</Link>.',
     },
     {
       question: 'Is the villa suitable for events or parties?',

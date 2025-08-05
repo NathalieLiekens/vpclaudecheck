@@ -23,6 +23,7 @@ const LocalGuide = () => {
         <h2 className="text-xl sm:text-2xl font-bold mt-8 mb-4">Activities</h2>
         <ul className="list-disc ml-6 space-y-2">
           <li><strong>Tanah Lot Temple</strong> (20-min drive): Iconic sea temple with stunning views.</li>
+          <li><strong>Amika Nails & Beauty Care</strong> (1-min walk): Professional nail care and beauty treatments right around the corner from the villa.</li>
           <li><strong>Canggu Yoga Centre</strong> (10-min drive): Daily yoga classes for all levels.</li>
         </ul>
         <p className="mt-6">
