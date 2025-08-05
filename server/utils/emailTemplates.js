@@ -1,7 +1,7 @@
 const getGuestEmailTemplate = ({ booking, checkInFormatted, checkOutFormatted, finalPaymentDue, bookingIdFormatted }) => `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 8px; color: #333;">
     <header style="text-align: center; padding-bottom: 20px;">
-      <img src="https://villapurabali.com/logo.png" style="width: 100px; border-radius: 50%; display: block; margin: 0 auto;" alt="Villa Pura Logo">
+      <img src="https://nathbyte.com/logo.png" style="width: 100px; border-radius: 50%; display: block; margin: 0 auto;" alt="Villa Pura Logo">
       <h1 style="text-align: center; color: #0066cc; font-size: 24px; margin: 10px 0;">VILLA PURA BALI</h1>
       <h2 style="text-align: center; color: #333; font-size: 20px; margin: 5px 0;">Your Tropical Paradise Awaits</h2>
     </header>
@@ -68,7 +68,7 @@ const getGuestEmailTemplate = ({ booking, checkInFormatted, checkOutFormatted, f
         </tr>
         <tr>
           <td colspan="2" style="padding: 8px; border: 1px solid #ddd; font-size: 14px; line-height: 1.5;">
-            An invoice for the remaining balance will be sent to you in due time. If you prefer to pay via bank transfer, please contact us at <a href="mailto:bookings@villapurabali.com" style="color: #0066cc; text-decoration: none;">bookings@villapurabali.com</a> for details.
+            An invoice for the remaining balance will be sent to you in due time. If you prefer to pay via bank transfer, please contact us at <a href="mailto:bookings@nathbyte.com" style="color: #0066cc; text-decoration: none;">bookings@nathbyte.com</a> for details.
           </td>
         </tr>
         ` : ''}
@@ -106,9 +106,9 @@ const getGuestEmailTemplate = ({ booking, checkInFormatted, checkOutFormatted, f
     <footer style="text-align: center; padding-top: 20px; border-top: 1px solid #ddd; margin-top: 20px;">
       <p style="font-size: 14px; color: #666; line-height: 1.5;">Thank you for choosing Villa Pura Bali.</p>
       <p style="font-size: 12px; color: #666;">
-        <a href="https://villapurabali.com" style="color: #0066cc; text-decoration: none;">villapurabali.com</a> | 
-        <a href="https://villapurabali.com/privacy" style="color: #0066cc; text-decoration: none;">Privacy Policy</a> | 
-        <a href="https://villapurabali.com/terms-and-conditions" style="color: #0066cc; text-decoration: none;">Terms & Conditions</a>
+        <a href="https://nathbyte.com" style="color: #0066cc; text-decoration: none;">nathbyte.com</a> | 
+        <a href="https://nathbyte.com/privacy" style="color: #0066cc; text-decoration: none;">Privacy Policy</a> | 
+        <a href="https://nathbyte.com/terms-and-conditions" style="color: #0066cc; text-decoration: none;">Terms & Conditions</a>
       </p>
     </footer>
     <style>
@@ -189,7 +189,7 @@ const getOwnerEmailTemplate = ({ booking, checkInFormatted, checkOutFormatted, f
     </table>
     <p style="font-size: 16px;">Please prepare for the guest's arrival.</p>
     <p style="font-size: 16px; text-align: center;">
-      <a href="https://villapurabali.com/contact" style="color: #0066cc; text-decoration: none;">Contact Guest</a>
+      <a href="https://nathbyte.com/contact" style="color: #0066cc; text-decoration: none;">Contact Guest</a>
     </p>
     <p style="font-size: 12px; color: #999; text-align: center; margin-top: 20px;">Villa Pura Bali, operated by PT. Acron Teknik, Indonesia.</p>
     <style>
@@ -205,7 +205,7 @@ const getOwnerEmailTemplate = ({ booking, checkInFormatted, checkOutFormatted, f
 const getSecondPaymentReminderTemplate = ({ booking, checkInFormatted, finalPaymentDue, bookingIdFormatted, daysBeforeDue }) => `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 8px; color: #333;">
     <header style="text-align: center; padding-bottom: 20px;">
-      <img src="https://villapurabali.com/logo.png" style="width: 100px; border-radius: 50%; display: block; margin: 0 auto;" alt="Villa Pura Logo">
+      <img src="https://nathbyte.com/logo.png" style="width: 100px; border-radius: 50%; display: block; margin: 0 auto;" alt="Villa Pura Logo">
       <h1 style="text-align: center; color: #0066cc; font-size: 24px; margin: 10px 0;">VILLA PURA BALI</h1>
     </header>
     <main>
@@ -231,7 +231,7 @@ const getSecondPaymentReminderTemplate = ({ booking, checkInFormatted, finalPaym
         </tr>
         <tr>
           <td colspan="2" style="padding: 8px; border: 1px solid #ddd; font-size: 14px; line-height: 1.5;">
-            An invoice for the remaining balance will be sent to you in due time. If you prefer to pay via bank transfer, please contact us at <a href="mailto:bookings@villapurabali.com" style="color: #0066cc; text-decoration: none;">bookings@villapurabali.com</a> for details.
+            An invoice for the remaining balance will be sent to you in due time. If you prefer to pay via bank transfer, please contact us at <a href="mailto:bookings@nathbyte.com" style="color: #0066cc; text-decoration: none;">bookings@nathbyte.com</a> for details.
           </td>
         </tr>
       </table>
@@ -239,7 +239,7 @@ const getSecondPaymentReminderTemplate = ({ booking, checkInFormatted, finalPaym
     </main>
     <footer style="text-align: center; padding-top: 20px; border-top: 1px solid #ddd; margin-top: 20px;">
       <p style="font-size: 12px; color: #666;">
-        <a href="https://villapurabali.com" style="color: #0066cc; text-decoration: none;">villapurabali.com</a>
+        <a href="https://nathbyte.com" style="color: #0066cc; text-decoration: none;">nathbyte.com</a>
       </p>
     </footer>
   </div>
@@ -248,7 +248,7 @@ const getSecondPaymentReminderTemplate = ({ booking, checkInFormatted, finalPaym
 const getSecondPaymentConfirmationTemplate = ({ booking, checkInFormatted, bookingIdFormatted }) => `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 8px; color: #333;">
     <header style="text-align: center; padding-bottom: 20px;">
-      <img src="https://villapurabali.com/logo.png" style="width: 100px; border-radius: 50%; display: block; margin: 0 auto;" alt="Villa Pura Logo">
+      <img src="https://nathbyte.com/logo.png" style="width: 100px; border-radius: 50%; display: block; margin: 0 auto;" alt="Villa Pura Logo">
       <h1 style="text-align: center; color: #0066cc; font-size: 24px; margin: 10px 0;">VILLA PURA BALI</h1>
     </header>
     <main>
@@ -273,7 +273,7 @@ const getSecondPaymentConfirmationTemplate = ({ booking, checkInFormatted, booki
     </main>
     <footer style="text-align: center; padding-top: 20px; border-top: 1px solid #ddd; margin-top: 20px;">
       <p style="font-size: 12px; color: #666;">
-        <a href="https://villapurabali.com" style="color: #0066cc; text-decoration: none;">villapurabali.com</a>
+        <a href="https://nathbyte.com" style="color: #0066cc; text-decoration: none;">nathbyte.com</a>
       </p>
     </footer>
   </div>
@@ -282,7 +282,7 @@ const getSecondPaymentConfirmationTemplate = ({ booking, checkInFormatted, booki
 const getPreArrivalEmailTemplate = ({ booking, checkInFormatted, checkOutFormatted, bookingIdFormatted }) => `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 8px; color: #333;">
     <header style="text-align: center; padding-bottom: 20px;">
-      <img src="https://villapurabali.com/logo.png" style="width: 100px; border-radius: 50%; display: block; margin: 0 auto;" alt="Villa Pura Logo">
+      <img src="https://nathbyte.com/logo.png" style="width: 100px; border-radius: 50%; display: block; margin: 0 auto;" alt="Villa Pura Logo">
       <h1 style="text-align: center; color: #0066cc; font-size: 24px; margin: 10px 0;">VILLA PURA BALI</h1>
     </header>
     <main>
@@ -329,7 +329,7 @@ const getPreArrivalEmailTemplate = ({ booking, checkInFormatted, checkOutFormatt
     </main>
     <footer style="text-align: center; padding-top: 20px; border-top: 1px solid #ddd; margin-top: 20px;">
       <p style="font-size: 12px; color: #666;">
-        <a href="https://villapurabali.com" style="color: #0066cc; text-decoration: none;">villapurabali.com</a>
+        <a href="https://nathbyte.com" style="color: #0066cc; text-decoration: none;">nathbyte.com</a>
       </p>
     </footer>
   </div>

@@ -11,7 +11,7 @@ const { sendSecondPaymentReminder, sendPreArrivalEmail } = require('./services/e
 const { connectDB } = require('./db');
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5002; // Different port
 
 // Setup logging
 const logger = winston.createLogger({
@@ -21,7 +21,7 @@ const logger = winston.createLogger({
     winston.format.errors({ stack: true }),
     winston.format.json()
   ),
-  defaultMeta: { service: 'villa-pura-backend' },
+  defaultMeta: { service: 'nathbyte-backend' },
   transports: [
     new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
     new winston.transports.File({ filename: 'logs/combined.log' }),
@@ -62,7 +62,7 @@ logger.info('Environment variables loaded:', {
 
 // Updated CORS configuration in server/index.js
 const corsOptions = {
-  origin: 'https://villapurabali.com',
+  origin: 'https://nathbyte.com',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
@@ -264,7 +264,7 @@ app.get('/health', (req, res) => {
 // Root endpoint for testing
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'Villa Pura Bali API is running', 
+    message: 'Nathbyte API is running', 
     endpoints: {
       health: '/health',
       pricing: '/api/pricing',
@@ -300,15 +300,15 @@ process.on('SIGINT', () => {
 });
 
 // Start server
-const server = app.listen(process.env.PORT || 5001, () => {
-  logger.info(`Server running on port ${process.env.PORT || 5001}`);
-  logger.info(`Health check: http://localhost:${process.env.PORT || 5001}/health`);
-  logger.info(`API endpoints: http://localhost:${process.env.PORT || 5001}/api`);
+const server = app.listen(process.env.PORT || 5002, () => {
+  logger.info(`Server running on port ${process.env.PORT || 5002}`);
+  logger.info(`Health check: http://localhost:${process.env.PORT || 5002}/health`);
+  logger.info(`API endpoints: http://localhost:${process.env.PORT || 5002}/api`);
 });
 
 server.on('error', (error) => {
   if (error.code === 'EADDRINUSE') {
-    logger.error(`Port ${process.env.PORT || 5001} is already in use`);
+    logger.error(`Port ${process.env.PORT || 5002} is already in use`);
     process.exit(1);
   } else {
     logger.error('Server error:', error);

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const config = {
-  apiUrl: import.meta.env.VITE_API_URL || 'https://api.villapurabali.com',
+  apiUrl: import.meta.env.VITE_API_URL || 'https://api.nathbyte.com',
   stripeKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
 };
 

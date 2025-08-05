@@ -24,7 +24,7 @@ const sendConfirmationEmails = async (booking) => {
       bookingIdFormatted,
     });
     await resend.emails.send({
-      from: 'Villa Pura Bali <bookings@villapurabali.com>',
+      from: 'Villa Pura Bali <bookings@nathbyte.com>',
       to: booking.email,
       subject: 'Villa Pura Bali - Your Booking Confirmation',
       html: guestEmailHtml,
@@ -40,7 +40,7 @@ const sendConfirmationEmails = async (booking) => {
         bookingIdFormatted,
       });
       await resend.emails.send({
-        from: 'Villa Pura Bali <bookings@villapurabali.com>',
+        from: 'Villa Pura Bali <bookings@nathbyte.com>',
         to: process.env.OWNER_EMAIL,
         subject: 'New Booking Notification - Villa Pura Bali',
         html: ownerEmailHtml,
@@ -70,7 +70,7 @@ const sendSecondPaymentReminder = async (booking, daysBeforeDue) => {
       daysBeforeDue,
     });
     await resend.emails.send({
-      from: 'Villa Pura Bali <bookings@villapurabali.com>',
+      from: 'Villa Pura Bali <bookings@nathbyte.com>',
       to: booking.email,
       subject: `Villa Pura Bali - Final Payment Reminder (${daysBeforeDue} Days)`,
       html: emailHtml,
@@ -93,7 +93,7 @@ const sendSecondPaymentConfirmation = async (booking) => {
       bookingIdFormatted,
     });
     await resend.emails.send({
-      from: 'Villa Pura Bali <bookings@villapurabali.com>',
+      from: 'Villa Pura Bali <bookings@nathbyte.com>',
       to: booking.email,
       subject: 'Villa Pura Bali - Final Payment Confirmation',
       html: emailHtml,
@@ -118,7 +118,7 @@ const sendPreArrivalEmail = async (booking) => {
       bookingIdFormatted,
     });
     await resend.emails.send({
-      from: 'Villa Pura Bali <bookings@villapurabali.com>',
+      from: 'Villa Pura Bali <bookings@nathbyte.com>',
       to: booking.email,
       subject: 'Villa Pura Bali - Prepare for Your Stay',
       html: emailHtml,

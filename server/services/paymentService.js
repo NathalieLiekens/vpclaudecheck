@@ -45,12 +45,12 @@ const createPaymentIntent = async ({ amount, currency, description, receipt_emai
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: currencyLower,
-      description: description || 'Villa Pura Bali booking',
+      description: description || 'NB test booking',
       receipt_email,
       metadata: {
         ...metadata,
         created_at: new Date().toISOString(),
-        service: 'villa-pura-booking'
+        service: 'nb-booking'
       },
       automatic_payment_methods: {
         enabled: true,
@@ -202,7 +202,7 @@ const createPaymentIntentForRemainingBalance = async (booking) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: booking.currency.toLowerCase(),
-      description: `Villa Pura Bali - Final payment for ${booking.guestName} (Booking: ${booking._id})`,
+      description: `NB test - Final payment for ${booking.guestName} (Booking: ${booking._id})`,
       receipt_email: booking.email,
       metadata: {
         bookingId: booking._id.toString(),
@@ -212,7 +212,7 @@ const createPaymentIntentForRemainingBalance = async (booking) => {
         checkInDate: booking.checkInDate.toISOString(),
         checkOutDate: booking.checkOutDate.toISOString(),
         created_at: new Date().toISOString(),
-        service: 'villa-pura-final-payment'
+        service: 'nathbyte-final-payment'
       },
       automatic_payment_methods: {
         enabled: true,
@@ -261,7 +261,7 @@ const extractPaymentMetadata = (paymentIntent) => {
       paymentType: paymentIntent.metadata?.paymentType || 'unknown',
       guestName: paymentIntent.metadata?.guestName || 'Unknown Guest',
       originalPaymentIntentId: paymentIntent.metadata?.originalPaymentIntentId || null,
-      service: paymentIntent.metadata?.service || 'villa-pura-booking'
+      service: paymentIntent.metadata?.service || 'nathbyte-booking'
     };
   } catch (error) {
     logger.warn('Failed to extract payment metadata:', {
@@ -313,7 +313,7 @@ const createRefund = async (paymentIntentId, amount = null, reason = 'requested_
       reason: reason,
       metadata: {
         refund_date: new Date().toISOString(),
-        service: 'villa-pura-refund'
+        service: 'nb-refund'
       }
     };
 
