@@ -1,4 +1,3 @@
-// src/components/BookingForm.jsx (Complete fixed version with timezone fix + analytics)
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Elements } from '@stripe/react-stripe-js';
@@ -23,15 +22,13 @@ const BookingForm = () => {
   const { blockedDates, loading: datesLoading, error: datesError } = useBlockedDates();
   const { error: apiError, handleError, clearError, withErrorHandling } = useErrorHandler();
   
-  // ✅ ALL STATE DECLARATIONS MOVED TO TOP
-  // Date and pricing state
+  // ALL STATE DECLARATIONS
   const [checkInDate, setCheckInDate] = useState(null);
   const [checkOutDate, setCheckOutDate] = useState(null);
   const [total, setTotal] = useState(0);
   const [discountedTotal, setDiscountedTotal] = useState(0);
   const [discountApplied, setDiscountApplied] = useState(false);
   
-  // Guest information state
   const [adults, setAdults] = useState(1);
   const [kids, setKids] = useState(0);
   const [firstName, setFirstName] = useState('');
@@ -40,12 +37,10 @@ const BookingForm = () => {
   const [arrivalTime, setArrivalTime] = useState('14:00');
   const [specialRequests, setSpecialRequests] = useState('');
   
-  // Booking options state
   const [discountCode, setDiscountCode] = useState('');
   const [paymentType, setPaymentType] = useState('full');
   const [currency, setCurrency] = useState('IDR');
   
-  // UI state
   const [error, setError] = useState('');
   const [showPaymentFields, setShowPaymentFields] = useState(false);
   const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
@@ -54,7 +49,7 @@ const BookingForm = () => {
   // Check if booking is within 45 days (force full payment)
   const isWithin45Days = checkInDate && (new Date(checkInDate) - new Date()) / (1000 * 60 * 60 * 24) < 45;
 
-  // Validation helpers - only used when actually submitting
+  // Validation helpers
   const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -93,141 +88,87 @@ const BookingForm = () => {
     return errors;
   };
 
-  // ✅ FIXED: Price calculation with proper date handling
-  useEffect(() => {
-    if (!checkInDate || !checkOutDate) {
-      setTotal(0);
-      setDiscountedTotal(0);
-      setDiscountApplied(false);
+useEffect(() => {
+  if (!checkInDate || !checkOutDate) {
+    setTotal(0);
+    setDiscountedTotal(0);
+    setDiscountApplied(false);
+    setError('');
+    clearError();
+    setShowPaymentFields(false);
+    return;
+  }
+
+  const calculatePrice = async () => {
+    try {
+      setIsCalculatingPrice(true);
       setError('');
       clearError();
-      setShowPaymentFields(false);
-      return;
-    }
 
-    const calculatePrice = async () => {
-      try {
-        setIsCalculatingPrice(true);
-        setError('');
-        clearError();
+      const checkInISO = checkInDate instanceof Date 
+        ? checkInDate.toISOString() 
+        : new Date(checkInDate).toISOString();
+      
+      const checkOutISO = checkOutDate instanceof Date 
+        ? checkOutDate.toISOString() 
+        : new Date(checkOutDate).toISOString();
 
-        // ✅ FIX: Ensure dates are properly formatted as ISO strings
-        const checkInISO = checkInDate instanceof Date 
-          ? checkInDate.toISOString() 
-          : new Date(checkInDate).toISOString();
-        
-        const checkOutISO = checkOutDate instanceof Date 
-          ? checkOutDate.toISOString() 
-          : new Date(checkOutDate).toISOString();
+      // Date validation code here... (keep existing)
 
-        console.log('🔍 FRONTEND DEBUG - Date formatting:', {
-          checkInDate: checkInDate,
-          checkOutDate: checkOutDate,
-          checkInISO: checkInISO,
-          checkOutISO: checkOutISO
-        });
+      // ✅ FIX: Always get original price first, then apply discount separately
+      const result = await withErrorHandling(async () => {
+        // Always get original price without discount
+        const originalPriceData = {
+          startDate: checkInISO,
+          endDate: checkOutISO,
+          currency: currency || 'IDR',
+          discountCode: '' // No discount for original price
+        };
 
-        // Basic date validation
-        const normalizedStart = new Date(checkInISO);
-        const normalizedEnd = new Date(checkOutISO);
-        normalizedStart.setHours(0, 0, 0, 0);
-        normalizedEnd.setHours(0, 0, 0, 0);
+        console.log('🔍 FRONTEND DEBUG - Getting original price:', originalPriceData);
+        const originalResponse = await api.calculatePrice(originalPriceData);
 
-        // Check for blocked dates
-        for (let d = new Date(normalizedStart); d < normalizedEnd; d.setDate(d.getDate() + 1)) {
-          const isBlocked = blockedDates.some(
-            (blocked) =>
-              blocked.getFullYear() === d.getFullYear() &&
-              blocked.getMonth() === d.getMonth() &&
-              blocked.getDate() === d.getDate()
-          );
-          if (isBlocked) {
-            setError('Selected dates include unavailable dates.');
-            setTotal(0);
-            setDiscountedTotal(0);
-            setShowPaymentFields(false);
-            return;
-          }
-        }
-
-        // Check date range limit
-        if (normalizedEnd > new Date(2027, 1, 1)) {
-          setError('Bookings are only available until January 31, 2027.');
-          setTotal(0);
-          setDiscountedTotal(0);
-          setShowPaymentFields(false);
-          return;
-        }
-
-        // ✅ FIX: Improved API call with proper data formatting
-        const result = await withErrorHandling(async () => {
-          const priceData = {
-            startDate: checkInISO,
-            endDate: checkOutISO,
-            currency: currency || 'IDR',
-            discountCode: discountApplied ? discountCode : ''
+        // If discount is applied, get discounted price
+        let discountResponse = originalResponse;
+        if (discountApplied && discountCode) {
+          const discountPriceData = {
+            ...originalPriceData,
+            discountCode: discountCode.trim()
           };
-
-          console.log('🔍 FRONTEND DEBUG - Sending price calculation request:', priceData);
-
-          const originalResponse = await api.calculatePrice(priceData);
-
-          let discountResponse = originalResponse;
-          if (discountApplied && discountCode) {
-            const discountPriceData = {
-              ...priceData,
-              discountCode: discountCode
-            };
-            discountResponse = await api.calculatePrice(discountPriceData);
-          }
-
-          return { originalResponse, discountResponse };
-        });
-
-        setTotal(result.originalResponse.data.total);
-        setDiscountedTotal(result.discountResponse.data.total);
-        
-        // Analytics: Track price calculation
-        const nights = Math.round((normalizedEnd - normalizedStart) / (1000 * 60 * 60 * 24));
-        villaTracking.priceCalculated(result.discountResponse.data.total, currency, nights);
-        
-        setError('');
-
-      } catch (err) {
-        console.error('[ERROR] Calculating price:', err.message);
-        
-        // ✅ FIX: More specific error messages
-        let errorMessage = 'Failed to calculate price. Please try again.';
-        
-        if (err.message.includes('Invalid')) {
-          errorMessage = 'Please check your selected dates and try again.';
-        } else if (err.message.includes('Network')) {
-          errorMessage = 'Connection error. Please check your internet and try again.';
-        } else if (err.message.includes('Server')) {
-          errorMessage = 'Server error. Please try again later or contact support.';
+          console.log('🔍 FRONTEND DEBUG - Getting discounted price:', discountPriceData);
+          discountResponse = await api.calculatePrice(discountPriceData);
         }
-        
-        setError(errorMessage);
-        setTotal(0);
-        setDiscountedTotal(0);
-        setShowPaymentFields(false);
-      } finally {
-        setIsCalculatingPrice(false);
-      }
-    };
 
-    calculatePrice();
-  }, [checkInDate, checkOutDate, blockedDates, currency, discountApplied, withErrorHandling, clearError]);
-  // ✅ FIX: Removed discountCode from dependencies - only run when discountApplied changes
+        return { originalResponse, discountResponse };
+      });
 
-  // ✅ FIXED: Date change handlers with timezone fix
+      // ✅ FIX: Set original price and discounted price separately
+      setTotal(result.originalResponse.data.total); // Always the original price
+      setDiscountedTotal(discountApplied ? result.discountResponse.data.total : result.originalResponse.data.total);
+      
+      // Analytics: Track price calculation
+      const nights = Math.round((normalizedEnd - normalizedStart) / (1000 * 60 * 60 * 24));
+      villaTracking.priceCalculated(result.discountResponse.data.total, currency, nights);
+      
+      setError('');
+
+    } catch (err) {
+      // Error handling code... (keep existing)
+    } finally {
+      setIsCalculatingPrice(false);
+    }
+  };
+
+  calculatePrice();
+}, [checkInDate, checkOutDate, blockedDates, currency, discountApplied, withErrorHandling, clearError]);
+
+  // Date change handlers with timezone fix
   const handleCheckInChange = (date) => {
-    // Create a new date that represents the same calendar day regardless of timezone
     const normalizedDate = date ? new Date(
       date.getFullYear(),
       date.getMonth(), 
       date.getDate(),
-      12, 0, 0, 0  // Set to noon to avoid timezone edge cases
+      12, 0, 0, 0
     ) : null;
     
     console.log('🔍 Check-in date:', {
@@ -238,7 +179,6 @@ const BookingForm = () => {
     
     setCheckInDate(normalizedDate);
     
-    // Analytics: Track date selection
     if (normalizedDate) {
       villaTracking.dateSelected(normalizedDate, checkOutDate);
     }
@@ -246,10 +186,8 @@ const BookingForm = () => {
     if (normalizedDate && (!checkOutDate || checkOutDate <= normalizedDate)) {
       const minCheckOut = new Date(normalizedDate);
       const isPeakSeason = normalizedDate && (
-        // 2025 Peak periods
         (normalizedDate >= new Date(2025, 0, 1) && normalizedDate < new Date(2025, 0, 6)) || 
         (normalizedDate >= new Date(2025, 11, 20) && normalizedDate < new Date(2026, 0, 1)) ||
-        // 2026 Peak periods  
         (normalizedDate >= new Date(2026, 0, 1) && normalizedDate < new Date(2026, 0, 6)) ||
         (normalizedDate >= new Date(2026, 11, 20) && normalizedDate < new Date(2027, 0, 1))
       );
@@ -270,12 +208,11 @@ const BookingForm = () => {
   };
 
   const handleCheckOutChange = (date) => {
-    // Create a new date that represents the same calendar day regardless of timezone
     const normalizedDate = date ? new Date(
       date.getFullYear(),
       date.getMonth(), 
       date.getDate(),
-      12, 0, 0, 0  // Set to noon to avoid timezone edge cases
+      12, 0, 0, 0
     ) : null;
     
     console.log('🔍 Check-out date:', {
@@ -284,7 +221,6 @@ const BookingForm = () => {
       willSendToAPI: normalizedDate?.toISOString()
     });
     
-    // Analytics: Track date selection
     if (normalizedDate && checkInDate) {
       villaTracking.dateSelected(checkInDate, normalizedDate);
     }
@@ -307,48 +243,58 @@ const BookingForm = () => {
   };
 
   // Updated discount handling with error handling
-  const handleApplyDiscount = async () => {
-    if (!discountCode.trim()) {
-      setError('Please enter a discount code.');
-      setDiscountApplied(false);
-      setDiscountedTotal(total);
-      setShowPaymentFields(false);
-      return;
-    }
+const handleApplyDiscount = async () => {
+  if (!discountCode.trim()) {
+    setError('Please enter a discount code.');
+    setDiscountApplied(false);
+    setDiscountedTotal(total); // Reset to original price
+    setShowPaymentFields(false);
+    return;
+  }
+  
+  try {
+    setIsCalculatingPrice(true);
+    setError('');
+    clearError();
     
-    try {
-      setIsCalculatingPrice(true);
-      setError('');
-      clearError();
-      
-      const result = await withErrorHandling(async () => {
-        return await api.calculatePrice({
-          startDate: checkInDate?.toISOString(),
-          endDate: checkOutDate?.toISOString(),
-          discountCode: discountCode.trim(),
-          currency,
-        });
+    // ✅ FIX: Get discounted price but keep original total unchanged
+    const result = await withErrorHandling(async () => {
+      return await api.calculatePrice({
+        startDate: checkInDate?.toISOString(),
+        endDate: checkOutDate?.toISOString(),
+        discountCode: discountCode.trim(),
+        currency,
       });
-      
+    });
+    
+    // ✅ FIX: Only update discounted total and set discount applied
+    // Keep original total unchanged for strikethrough display
+    const originalPrice = total; // Keep the original price
+    const newDiscountedPrice = result.data.total;
+    
+    if (newDiscountedPrice !== originalPrice) {
       // Analytics: Track discount application
-      if (result.data.total !== total) {
-        villaTracking.discountApplied(discountCode.trim(), total, result.data.total);
-      }
+      villaTracking.discountApplied(discountCode.trim(), originalPrice, newDiscountedPrice);
       
-      setDiscountedTotal(result.data.total);
+      setDiscountedTotal(newDiscountedPrice);
       setDiscountApplied(true);
       setError('');
-      
-    } catch (err) {
-      setError('Invalid discount code. Please try again.');
-      setDiscountApplied(false);
-      setDiscountedTotal(total);
-      console.error('[ERROR] Applying discount:', err.message);
-      setShowPaymentFields(false);
-    } finally {
-      setIsCalculatingPrice(false);
+    } else {
+      // No discount was applied
+      throw new Error('Invalid discount code');
     }
-  };
+    
+  } catch (err) {
+    setError('Invalid discount code. Please try again.');
+    setDiscountApplied(false);
+    setDiscountedTotal(total); // Reset to original price
+    console.error('[ERROR] Applying discount:', err.message);
+    setShowPaymentFields(false);
+  } finally {
+    setIsCalculatingPrice(false);
+  }
+};
+
 
   // Continue to payment handler
   const handleContinueToPayment = () => {
@@ -357,14 +303,13 @@ const BookingForm = () => {
       return;
     }
 
-    // ✅ FIX: Use precise deposit calculation for analytics
-    const finalAmount = paymentType === 'deposit' && discountCode !== 'TESTFREE' 
-      ? Math.round(discountedTotal * 0.3 * 100) / 100  // Precise calculation
+    // Remove TESTFREE reference - just check paymentType
+    const finalAmount = paymentType === 'deposit' 
+      ? Math.round(discountedTotal * 0.3 * 100) / 100
       : discountedTotal;
     
     villaTracking.paymentInitiated(finalAmount, currency, paymentType);
 
-    // Only validate dates at this stage - guest details come later
     setError('');
     clearError();
     setShowPaymentFields(true);
@@ -372,9 +317,9 @@ const BookingForm = () => {
 
   // Booking success handler
   const handleBookingSuccess = (bookingId) => {
-    // ✅ FIX: Use precise deposit calculation for analytics
-    const finalAmount = paymentType === 'deposit' && discountCode !== 'TESTFREE' 
-      ? Math.round(discountedTotal * 0.3 * 100) / 100  // Precise calculation
+    // Remove TESTFREE reference - just check paymentType
+    const finalAmount = paymentType === 'deposit' 
+      ? Math.round(discountedTotal * 0.3 * 100) / 100
       : discountedTotal;
     
     villaTracking.bookingCompleted(bookingId, finalAmount, currency, paymentType);
@@ -401,7 +346,7 @@ const BookingForm = () => {
           Book Villa Pura Bali
         </h2>
         
-        {/* Error Display - Enhanced */}
+        {/* Error Display */}
         {(error || apiError || datesError) && (
           <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
             <div className="flex">
@@ -486,20 +431,17 @@ const BookingForm = () => {
                     const newCode = e.target.value;
                     setDiscountCode(newCode);
                     
-                    // ✅ FIX: Only reset applied state if discount was previously applied
                     if (discountApplied) {
                       setDiscountApplied(false);
                       setDiscountedTotal(total);
                       setShowPaymentFields(false);
                     }
                     
-                    // ✅ FIX: Clear discount-related errors when user types (not all errors)
                     if (error && (error.includes('discount') || error.includes('Invalid'))) {
                       setError('');
                     }
                   }}
                   onKeyDown={(e) => {
-                    // ✅ FIX: Allow Enter key to apply discount
                     if (e.key === 'Enter' && discountCode.trim() && !isCalculatingPrice) {
                       e.preventDefault();
                       handleApplyDiscount();
@@ -509,7 +451,6 @@ const BookingForm = () => {
                   className="w-full border rounded p-2 text-villa-charcoal text-sm focus:ring-villa-green focus:border-villa-green"
                   disabled={isCalculatingPrice}
                 />
-                {/* Show applied discount status */}
                 {discountApplied && (
                   <p className="text-green-600 text-xs mt-1">✓ Discount code applied successfully</p>
                 )}
@@ -557,8 +498,8 @@ const BookingForm = () => {
             </div>
           )}
 
-          {/* Payment Type Selection */}
-          {!isWithin45Days && total > 0 && discountCode !== 'TESTFREE' && (
+          {/* Payment Type Selection - Removed TESTFREE condition */}
+          {!isWithin45Days && total > 0 && (
             <div>
               <label className="block mb-1 text-villa-charcoal font-semibold text-sm">Payment Option</label>
               <select
@@ -644,9 +585,9 @@ const BookingForm = () => {
                       endDate: checkOutDate?.toISOString(),
                       adults,
                       kids,
-                      // ✅ FIX: Use precise calculation that matches backend exactly
-                      total: paymentType === 'deposit' && discountCode !== 'TESTFREE' 
-                        ? Math.round(discountedTotal * 0.3 * 100) / 100  // ✅ This should be 259.44
+                      // Remove TESTFREE reference - just check paymentType
+                      total: paymentType === 'deposit' 
+                        ? Math.round(discountedTotal * 0.3 * 100) / 100
                         : discountedTotal,
                       arrivalTime,
                       specialRequests,

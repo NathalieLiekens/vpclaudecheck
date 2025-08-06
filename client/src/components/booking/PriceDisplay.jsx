@@ -1,4 +1,3 @@
-// Fixed PriceDisplay.jsx - Remove console.log causing infinite renders
 import React from 'react';
 
 const PriceDisplay = ({
@@ -17,17 +16,14 @@ const PriceDisplay = ({
     ? (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
     : 0;
 
-  // ✅ FIX: Match backend deposit calculation exactly
-  const depositAmount = paymentType === 'deposit' && discountCode !== 'TESTFREE' 
-    ? Math.round(discountedTotal * 0.3 * 100) / 100  // Same precision as backend
+  const depositAmount = paymentType === 'deposit' 
+    ? Math.round(discountedTotal * 0.3 * 100) / 100
     : discountedTotal;
-
-  // ✅ REMOVED: console.log that was causing infinite renders
-  // Only log when there are actual changes, not on every render
 
   return (
     <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-      {discountApplied && discountCode !== 'TESTFREE' && (
+      {/* ✅ FIX: Show original price only when discount is applied AND prices are different */}
+      {discountApplied && total !== discountedTotal && (
         <p className="text-lg text-villa-charcoal">
           <span className="line-through text-gray-500">
             Original: {currency} {parseInt(total).toLocaleString('id-ID')}
@@ -36,7 +32,7 @@ const PriceDisplay = ({
       )}
       
       <p className="text-xl text-villa-charcoal font-semibold">
-        {discountApplied && discountCode !== 'TESTFREE' ? 'Discounted Total' : 'Total'}: 
+        {discountApplied && total !== discountedTotal ? 'Discounted Total' : 'Total'}: 
         <span className="text-villa-green ml-2">
           {currency} {parseInt(discountedTotal).toLocaleString('id-ID')}
         </span>
@@ -46,17 +42,14 @@ const PriceDisplay = ({
         for {nights} night{nights !== 1 ? 's' : ''}
       </p>
       
-      {discountApplied && discountCode === 'MEGAN' && (
-        <p className="text-sm text-villa-green">✓ 5% discount applied</p>
+      {/* Generic discount message - only show if discount actually reduced price */}
+      {discountApplied && discountCode && total !== discountedTotal && (
+        <p className="text-sm text-villa-green">✓ Discount code applied</p>
       )}
       
-      {discountApplied && discountCode === 'TESTFREE' && (
-        <p className="text-sm text-villa-green">✓ Free booking</p>
-      )}
-      
-      {paymentType === 'deposit' && discountCode !== 'TESTFREE' && (
+      {paymentType === 'deposit' && (
         <p className="text-sm text-blue-600">
-           30% deposit: {currency} {depositAmount.toLocaleString('id-ID', { 
+          30% deposit: {currency} {depositAmount.toLocaleString('id-ID', { 
             minimumFractionDigits: 2, 
             maximumFractionDigits: 2 
           })}

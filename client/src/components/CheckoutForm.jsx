@@ -14,13 +14,12 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
       return false;
     }
 
-    // Use the validation function passed from BookingForm
     if (validateBookingForm) {
       const validationErrors = validateBookingForm();
       if (validationErrors.length > 0) {
         setError(validationErrors[0]);
         if (onValidationError) {
-          onValidationError(validationErrors[0]); // Also set error in parent
+          onValidationError(validationErrors[0]);
         }
         return false;
       }
@@ -35,14 +34,12 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
     setError(null);
 
     try {
-      // Log the API URL for debugging
       console.log('API URL:', import.meta.env.VITE_API_URL);
       
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/bookings`, bookingDetails, {
         headers: { 'Content-Type': 'application/json' },
       });
       
-      // ✅ FIX: Properly extract all response data with error handling
       const responseData = response.data;
       console.log('🔍 CHECKOUT DEBUG - Full response data:', responseData);
       
@@ -52,28 +49,11 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
 
       const { clientSecret, bookingId } = responseData;
       
-      // ✅ FIX: Ensure we have bookingId
       if (!bookingId) {
         throw new Error('Booking ID missing from server response');
       }
 
-      // Handle TESTFREE bookings (no payment required)
-      if (bookingDetails.discountCode === 'TESTFREE') {
-        // ✅ FIX: For free bookings, still call confirm-payment but with special handling
-        try {
-          await axios.post(`${import.meta.env.VITE_API_URL}/api/bookings/confirm-payment`, {
-            paymentIntentId: 'TESTFREE_NO_PAYMENT',  // This matches backend expectation
-            bookingId,
-          });
-        } catch (confirmError) {
-          console.error('Free booking confirmation error:', confirmError);
-          // For free bookings, this might not be critical if webhook already processed
-        }
-        onSuccess(bookingId);
-        return;
-      }
-
-      // Handle paid bookings
+      // Handle paid bookings - removed all TESTFREE logic
       if (clientSecret && bookingDetails.total > 0) {
         console.log('🔍 CHECKOUT DEBUG - Processing payment with clientSecret');
         
@@ -93,7 +73,6 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
 
         console.log('🔍 CHECKOUT DEBUG - Payment successful, result:', result);
         
-        // ✅ FIX: Get paymentIntentId from the Stripe result, not from initial response
         const paymentIntentId = result.paymentIntent.id;
         
         console.log('🔍 CHECKOUT DEBUG - Confirming payment with:', {
@@ -104,13 +83,12 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
         // Confirm payment with backend (fallback if webhook doesn't work)
         try {
           await axios.post(`${import.meta.env.VITE_API_URL}/api/bookings/confirm-payment`, {
-            paymentIntentId,  // ✅ FIX: Use correct paymentIntentId from Stripe result
+            paymentIntentId,
             bookingId,
           });
           console.log('✅ CHECKOUT DEBUG - Payment confirmation successful');
         } catch (confirmError) {
           console.error('❌ CHECKOUT DEBUG - Payment confirmation failed:', confirmError);
-          // Log but don't throw - webhook might have already processed this
           console.log('Payment succeeded but confirmation failed - webhook should handle this');
         }
         
@@ -139,11 +117,10 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
     }
   };
 
-  // ✅ FIX: Helper function to format price properly
+  // Helper function to format price properly
   const formatPrice = (amount, currency) => {
     const numAmount = parseFloat(amount);
     
-    // For currencies like AUD, USD, EUR - show decimals
     if (['AUD', 'USD', 'EUR'].includes(currency)) {
       return numAmount.toLocaleString('en-US', {
         minimumFractionDigits: 2,
@@ -151,14 +128,13 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
       });
     }
     
-    // For IDR - show as whole number
     return Math.round(numAmount).toLocaleString('id-ID');
   };
 
   return (
     <div className="space-y-4">
       {/* Card Element - only show if payment is required */}
-      {bookingDetails.total > 0 && bookingDetails.discountCode !== 'TESTFREE' && (
+      {bookingDetails.total > 0 && (
         <div className="border rounded p-4 bg-villa-white">
           <label className="block mb-2 text-villa-charcoal font-semibold text-sm">
             Payment Information
@@ -207,7 +183,8 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
             <span>Check-out:</span>
             <span>{new Date(bookingDetails.endDate).toLocaleDateString()}</span>
           </div>
-          {bookingDetails.paymentType === 'deposit' && bookingDetails.discountCode !== 'TESTFREE' && (
+          {/* Removed TESTFREE condition - just check paymentType */}
+          {bookingDetails.paymentType === 'deposit' && (
             <div className="flex justify-between text-blue-600">
               <span>Payment Type:</span>
               <span>30% Deposit</span>
@@ -215,7 +192,8 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
           )}
           <div className="flex justify-between font-semibold text-lg border-t pt-2 mt-2">
             <span>
-              {bookingDetails.paymentType === 'deposit' && bookingDetails.discountCode !== 'TESTFREE' 
+              {/* Removed TESTFREE condition - just check paymentType */}
+              {bookingDetails.paymentType === 'deposit' 
                 ? 'Deposit Total:' 
                 : 'Total:'}
             </span>
@@ -239,7 +217,7 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
         </div>
       )}
 
-      {/* Submit Button */}
+      {/* Submit Button - Removed TESTFREE logic */}
       <button
         type="button"
         onClick={handleSubmit}
@@ -251,8 +229,6 @@ const CheckoutForm = ({ bookingDetails, onSuccess, validateBookingForm, onValida
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
             Processing...
           </div>
-        ) : bookingDetails.discountCode === 'TESTFREE' ? (
-          'Confirm Free Booking'
         ) : bookingDetails.paymentType === 'deposit' ? (
           'Pay Deposit & Book'
         ) : (
