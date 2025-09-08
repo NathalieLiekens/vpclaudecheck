@@ -40,6 +40,18 @@ const getGuestEmailTemplate = ({ booking, checkInFormatted, checkOutFormatted, f
           <th style="padding: 8px; border: 1px solid #ddd; font-weight: bold; text-align: left;">Discount</th>
           <td style="padding: 8px; border: 1px solid #ddd;">5% (MEGAN)</td>
         </tr>
+        ` : booking.discountCode === 'COOPS5' ? `
+<tr style="background-color: #e6f0fa;">
+  <th style="padding: 8px; border: 1px solid #ddd; font-weight: bold; text-align: left;">Discount</th>
+  <td style="padding: 8px; border: 1px solid #ddd;">5% (COOPS5)</td>
+</tr>
+<tr>
+  <th style="padding: 8px; border: 1px solid #ddd; font-weight: bold; text-align: left;">Racing Team Support</th>
+  <td style="padding: 8px; border: 1px solid #ddd;">
+    🏁 5% of your payment (${booking.currency} ${(booking.total * 0.05).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}) 
+    will be donated to Cooper Horne Racing #28
+  </td>
+</tr>
         ` : booking.discountCode === 'TESTFREE' ? `
         <tr style="background-color: #e6f0fa;">
           <th style="padding: 8px; border: 1px solid #ddd; font-weight: bold; text-align: left;">Discount</th>

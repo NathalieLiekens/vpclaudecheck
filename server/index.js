@@ -1,4 +1,9 @@
 require('dotenv').config();
+console.log('=== ENV CHECK AT STARTUP ===');
+console.log('MONGODB_URI from env:', process.env.MONGODB_URI?.substring(0, 50));
+console.log('============================');
+
+// rest of your code...
 const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');

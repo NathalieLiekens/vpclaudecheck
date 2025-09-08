@@ -226,6 +226,26 @@ const applyDiscount = (totalPrice, discountCode) => {
       logger.info('MEGAN discount applied:', { originalPrice: totalPrice, discountedPrice: finalTotal });
       break;
       
+    case 'COOPS5':
+      // Check if discount has expired
+      const currentDate = new Date();
+      const expiryDate = new Date('2025-11-30T23:59:59Z');
+      
+      if (currentDate > expiryDate) {
+        logger.warn('COOPS5 discount code has expired');
+        // Don't throw error, just ignore expired code
+        break;
+      }
+      
+      finalTotal = Math.round(totalPrice * 0.95 * 100) / 100; // 5% discount
+      airportTransfer = false; // No airport transfer for this code
+      logger.info('COOPS5 discount applied:', { 
+        originalPrice: totalPrice, 
+        discountedPrice: finalTotal,
+        expiresOn: expiryDate.toISOString()
+      });
+      break;
+      
     case 'TESTFREE':
       finalTotal = 0;
       airportTransfer = true;
