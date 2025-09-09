@@ -55,7 +55,7 @@ const PriceDisplay = ({
           {discountCode.toUpperCase() === 'MEGAN' && (
             <p className="text-sm text-villa-green">✓ 5% discount applied</p>
           )}
-          {discountCode.toUpperCase() === 'COOPS5' && (
+          {discountCode.toUpperCase() === 'COOPS' && (
             <>
               <p className="text-sm text-villa-green">✓ 5% discount applied</p>
               <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
